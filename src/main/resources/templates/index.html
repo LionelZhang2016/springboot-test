@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!-- import CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.5/lib/theme-chalk/index.css">
+</head>
+<body>
+  <div id="app">
+<template>
+  <el-table
+    :data="tData"
+    stripe
+    style="width: 100%" @row-click="(row, column, event)=>showDetail(row, column, event)"><!-- @row-click="dialogTableVisible = true" -->
+    <el-table-column
+      prop="sales_time"
+      label="Date"
+      width="180">
+    </el-table-column>
+    <el-table-column
+      prop="id"
+      label="Id"
+      width="180">
+    </el-table-column>
+    <el-table-column
+      prop="sub_total"
+      label="SubTotal">
+    </el-table-column>
+  </el-table>
+    <el-pagination
+    		  @current-change="page(currentPage)"
+              :current-page="currentPage"
+              :total="pageTotal">
+    </el-pagination> 
+  <!-- Details dialog-->
+  <el-dialog title="Details" :visible.sync="dialogTableVisible">
+  <el-table :data="gridData">
+    <el-table-column property="dish_name" label="dish_name" width="150"></el-table-column>
+    <el-table-column property="qty" label="Qty" width="200"></el-table-column>
+    <el-table-column property="dish_price" label="subPrice"></el-table-column>
+  </el-table> 
+</el-dialog>
+</template>
+  </div>
+</body>
+  <!-- import Vue before Element -->
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+  <!-- import JavaScript -->
+  <script src="https://unpkg.com/element-ui@2.15.5/lib/index.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script>
+	new Vue({
+		  el: '#app',
+		  data () {
+		    return {
+		    	tData: null,
+		    	currentPage: 1,
+		    	pageTotal: 0,
+		    	gridData: null,
+		        dialogTableVisible: false,
+		        
+		    }
+		  },
+		  mounted () {
+		    axios
+		      .get('http://localhost:8080/index/1/25')
+		      .then(response => {
+		    	  console.log(response.data);
+		    	  this.tData = response.data.list;
+		    	  this.currentPage = response.data.currentPage;
+		    	  this.pageTotal = response.data.pageTotal;
+		    	  
+		      })
+		  },
+		  methods:{
+			  page:function(currentPage){
+				  console.log(currentPage);
+				    axios
+				      .get('http://localhost:8080/index/'+(currentPage+1)+'/25')
+				      .then(response => {
+				    	  console.log(response.data);
+				    	  this.tData = response.data.list;
+				    	  this.currentPage = response.data.currentPage;
+				    	  this.pageTotal = response.data.pageTotal;
+				    	  })
+			  },
+			  showDetail:function(row, column, event){
+				  console.log(row.id);
+				  axios
+			      .get('http://localhost:8080/details/'+row.id+'')
+			      .then(response => {
+			    	  console.log(response.data);
+			    	  this.dialogTableVisible = true;
+			    	  this.gridData = response.data.list;
+			    	  })
+
+			  }
+		  }
+		})
+  </script>
+</html>
